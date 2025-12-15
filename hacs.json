@@ -1,0 +1,5 @@
+{
+  "name": "MyConso HA integration",
+  "hacs": "1.3.0",
+  "homeassistant": "2025.12.0"
+}
