@@ -1,96 +1,66 @@
-"""Integration 101 Template integration using DataUpdateCoordinator."""
+from __future__ import annotations
 
-from dataclasses import dataclass
 from datetime import timedelta
 import logging
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_PASSWORD,
-    CONF_SCAN_INTERVAL,
-    CONF_USERNAME,
-)
-from homeassistant.core import DOMAIN, HomeAssistant
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .api import API, APIAuthError, Device, DeviceType
-from .const import DEFAULT_SCAN_INTERVAL
+from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
+type MyConsoConfigEntry = ConfigEntry[MyConsoCoordinator]
 
-@dataclass
-class ExampleAPIData:
-    """Class to hold api data."""
+UPDATE_INTERVAL = timedelta(minutes=30)
 
-    controller_name: str
-    devices: list[Device]
+class MyConsoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
+    config_entry: MyConsoConfigEntry
+    housing: str
+    counters: list[dict]
 
-
-class ExampleCoordinator(DataUpdateCoordinator):
-    """My example coordinator."""
-
-    data: ExampleAPIData
-
-    def __init__(self, hass: HomeAssistant, config_entry: ConfigEntry) -> None:
-        """Initialize coordinator."""
-
-        # Set variables from values entered in config flow setup
-        self.host = config_entry.data[CONF_HOST]
-        self.user = config_entry.data[CONF_USERNAME]
-        self.pwd = config_entry.data[CONF_PASSWORD]
-
-        # set variables from options.  You need a default here incase options have not been set
-        self.poll_interval = config_entry.options.get(
-            CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
-        )
-
-        # Initialise DataUpdateCoordinator
+    def __init__(self, hass, config_entry, client) -> None:
         super().__init__(
             hass,
             _LOGGER,
-            name=f"{DOMAIN} ({config_entry.unique_id})",
-            # Method to call on every update interval.
-            update_method=self.async_update_data,
-            # Polling interval. Will only be polled if there are subscribers.
-            # Using config option here but you can just use a value.
-            update_interval=timedelta(seconds=self.poll_interval),
+            config_entry=config_entry,
+            name=DOMAIN,
+            update_interval=UPDATE_INTERVAL,
         )
+        self.client = client
+        self.housing = config_entry.data["housing"]
 
-        # Initialise your api here
-        self.api = API(host=self.host, user=self.user, pwd=self.pwd)
+    async def _async_setup(self) -> None:
+        self.counters = await self.client.get_counters()
+        self.info_housing = await self.client.get_housing()
 
-    async def async_update_data(self):
-        """Fetch data from API endpoint.
+        for c in self.counters:
+            meter_info = await self.client.get_meter_info(c['counter'])
+            if meter_info:
+                c.update({"location": meter_info["location"]})
+        _LOGGER.debug("_async_setup %s", self.counters)
 
-        This is the place to pre-process the data to lookup tables
-        so entities can quickly look up their data.
-        """
-        try:
-            if not self.api.connected:
-                await self.hass.async_add_executor_job(self.api.connect)
-            devices = await self.hass.async_add_executor_job(self.api.get_devices)
-        except APIAuthError as err:
-            _LOGGER.error(err)
-            raise UpdateFailed(err) from err
-        except Exception as err:
-            # This will show entities as unavailable by raising UpdateFailed exception
-            raise UpdateFailed(f"Error communicating with API: {err}") from err
+    async def _async_update_data(self):
+        _LOGGER.debug("_async_update_data 1 %s", self.counters)
+        data = []
+        for counter in self.counters:
+            indexes = await self.client.get_meter(counter["counter"])
+            filtered = [idx for idx in indexes['indexes'] if idx["fluidType"] == counter["fluidType"]]
+            last_index = max(filtered, key=lambda x: x["date"])
+            data.append({**counter, "last_index": last_index["value"]})
+        _LOGGER.debug("_async_update_data 2 %s ", data)
 
-        # What is returned here is stored in self.data by the DataUpdateCoordinator
-        return ExampleAPIData(self.api.controller_name, devices)
+        await self.client.auth_refresh()
 
-    def get_device_by_id(
-        self, device_type: DeviceType, device_id: int
-    ) -> Device | None:
-        """Return device by device id."""
-        # Called by the binary sensors and sensors to get their updated data from self.data
-        try:
-            return [
-                device
-                for device in self.data.devices
-                if device.device_type == device_type and device.device_id == device_id
-            ][0]
-        except IndexError:
-            return None
+        if self.client.token != self.config_entry.data['token']:
+            _LOGGER.debug("_async_update_data 3 update token")
+            self.hass.config_entries.async_update_entry(
+                self.config_entry,
+                data={
+                    'token': self.client.token,
+                    'refresh_token': self.client.refresh_token,
+                    'housing': self.client._housing,
+                },
+            )
+        return data

@@ -1,126 +1,168 @@
-"""Interfaces with the Integration 101 Template api sensors."""
-
 import logging
 
+
+from dataclasses import dataclass
+from enum import StrEnum
+
+from homeassistant.const import Platform
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
     SensorStateClass,
+    SensorEntityDescription,
 )
-from homeassistant.const import UnitOfTemperature
-from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.const import UnitOfEnergy, UnitOfVolume
+from homeassistant.helpers.device_registry import (
+    DeviceEntry,
+    DeviceEntryType,
+    DeviceInfo,
+)
+from homeassistant.helpers.typing import StateType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.util.unit_conversion import EnergyConverter, VolumeConverter
 
-from . import MyConfigEntry
-from .api import Device, DeviceType
 from .const import DOMAIN
-from .coordinator import ExampleCoordinator
+from .coordinator import MyConsoCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
+PLATFORMS: list[Platform] = [Platform.SENSOR]
+
+
+# Coordinator is used to centralize the data updates
+PARALLEL_UPDATES = 0
+
+
+class MyConsoFluidType(StrEnum):
+    CLIM = "clim"
+    HEATING = "heating"
+    HOT_WATER = "waterHot"
+    WATER = "waterCold"
+
+
+@dataclass(kw_only=True, frozen=True)
+class MyConsoSensorEntityDescription(SensorEntityDescription):
+    fluid_type: MyConsoFluidType
+    unit_class: str
+
+
+class MyConsoSensorEntity(StrEnum):
+    CLIM = "clim"
+    HEATING = "heating"
+    HOT_WATER = "hot_water"
+    WATER = "water"
+
+
+SENSOR_DESCRIPTIONS: tuple[MyConsoSensorEntityDescription, ...] = (
+    MyConsoSensorEntityDescription(
+        key=MyConsoSensorEntity.CLIM,
+        translation_key=MyConsoSensorEntity.CLIM,
+        fluid_type=MyConsoFluidType.CLIM,
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        suggested_display_precision=1,
+        unit_class=EnergyConverter.UNIT_CLASS,
+    ),
+    MyConsoSensorEntityDescription(
+        key=MyConsoSensorEntity.HEATING,
+        translation_key=MyConsoSensorEntity.HEATING,
+        fluid_type=MyConsoFluidType.HEATING,
+        device_class=SensorDeviceClass.ENERGY,
+        native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        suggested_display_precision=1,
+        unit_class=EnergyConverter.UNIT_CLASS,
+    ),
+    MyConsoSensorEntityDescription(
+        key=MyConsoSensorEntity.HOT_WATER,
+        translation_key=MyConsoSensorEntity.HOT_WATER,
+        fluid_type=MyConsoFluidType.HOT_WATER,
+        device_class=SensorDeviceClass.WATER,
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        suggested_display_precision=1,
+        unit_class=VolumeConverter.UNIT_CLASS,
+    ),
+    MyConsoSensorEntityDescription(
+        key=MyConsoSensorEntity.WATER,
+        translation_key=MyConsoSensorEntity.WATER,
+        fluid_type=MyConsoFluidType.WATER,
+        device_class=SensorDeviceClass.WATER,
+        native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        suggested_display_precision=1,
+        unit_class=VolumeConverter.UNIT_CLASS,
+    ),
+)
+
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: MyConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-):
-    """Set up the Sensors."""
-    # This gets the data update coordinator from the config entry runtime data as specified in your __init__.py
-    coordinator: ExampleCoordinator = config_entry.runtime_data.coordinator
+    hass,
+    config_entry,
+    async_add_entities,
+) -> None:
+    _LOGGER.debug("async_setup_entry 1 %s", config_entry.data)
+    _LOGGER.debug("async_setup_entry 2 %s", config_entry.runtime_data)
 
-    # Enumerate all the sensors in your data value from your DataUpdateCoordinator and add an instance of your sensor class
-    # to a list for each one.
-    # This maybe different in your specific case, depending on how your data is structured
-    sensors = [
-        ExampleSensor(coordinator, device)
-        for device in coordinator.data.devices
-        if device.device_type == DeviceType.TEMP_SENSOR
-    ]
+    coordinator = config_entry.runtime_data
 
-    # Create the sensors.
+    _LOGGER.debug("async_setup_entry 3 %s", coordinator.data)
+    _LOGGER.debug("async_setup_entry 4 %s", coordinator.counters)
+
+    sensors = []
+    for counter in coordinator.counters:
+        for description in SENSOR_DESCRIPTIONS:
+            if counter["fluidType"] == description.fluid_type:
+                sensors.append(MyConsoSensor(coordinator, description, counter))
     async_add_entities(sensors)
 
 
-class ExampleSensor(CoordinatorEntity, SensorEntity):
-    """Implementation of a sensor."""
+class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
+    entity_description: MyConsoSensorEntityDescription
+    #_attr_has_entity_name = True
+    device_entry: DeviceEntry
 
-    def __init__(self, coordinator: ExampleCoordinator, device: Device) -> None:
+    def __init__(
+        self,
+        coordinator: MyConsoCoordinator,
+        entity_description: MyConsoSensorEntityDescription,
+        counter,
+    ) -> None:
         """Initialise sensor."""
         super().__init__(coordinator)
-        self.device = device
-        self.device_id = device.device_id
+        _LOGGER.debug("MyConsoSensor init 1 %s", counter)
+        _LOGGER.debug("MyConsoSensor init 2 %s", counter['counter'])
+        _LOGGER.debug("MyConsoSensor init 3 %s", entity_description.key)
+        _LOGGER.debug("MyConsoSensor init 4 %s", coordinator.housing)
 
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Update sensor with latest data from coordinator."""
-        # This method is called by your DataUpdateCoordinator when a successful update runs.
-        self.device = self.coordinator.get_device_by_id(
-            self.device.device_type, self.device_id
-        )
-        _LOGGER.debug("Device: %s", self.device)
-        self.async_write_ha_state()
-
-    @property
-    def device_class(self) -> str:
-        """Return device class."""
-        # https://developers.home-assistant.io/docs/core/entity/sensor/#available-device-classes
-        return SensorDeviceClass.TEMPERATURE
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device information."""
-        # Identifiers are what group entities into the same device.
-        # If your device is created elsewhere, you can just specify the indentifiers parameter.
-        # If your device connects via another device, add via_device parameter with the indentifiers of that device.
-        return DeviceInfo(
-            name=f"ExampleDevice{self.device.device_id}",
-            manufacturer="ACME Manufacturer",
-            model="Door&Temp v1",
-            sw_version="1.0",
-            identifiers={
-                (
-                    DOMAIN,
-                    f"{self.coordinator.data.controller_name}-{self.device.device_id}",
-                )
-            },
+        self.counter = counter["counter"]
+        self.fluid_type = counter["fluidType"]
+        self.entity_description = entity_description
+        self._attr_unique_id = f"{self.counter}_{entity_description.key}"
+        self._attr_name = f"{entity_description.fluid_type} {counter['location']} {self.counter}"
+        self._attr_extra_state_attributes = {
+                "counter": counter["counter"],
+                "location": counter["location"],
+                "fluidtype": counter["fluidType"]
+        }
+        self._attr_device_info = DeviceInfo(
+            entry_type=DeviceEntryType.SERVICE,
+            manufacturer="proxiserve",
+            model="proxiserve",
+            name=coordinator.info_housing['name'],
+            model_id=coordinator.housing,
+            serial_number=coordinator.housing,
+            identifiers={(DOMAIN, coordinator.housing)},
         )
 
     @property
-    def name(self) -> str:
-        """Return the name of the sensor."""
-        return self.device.name
-
-    @property
-    def native_value(self) -> int | float:
-        """Return the state of the entity."""
-        # Using native value and native unit of measurement, allows you to change units
-        # in Lovelace and HA will automatically calculate the correct value.
-        return float(self.device.state)
-
-    @property
-    def native_unit_of_measurement(self) -> str | None:
-        """Return unit of temperature."""
-        return UnitOfTemperature.CELSIUS
-
-    @property
-    def state_class(self) -> str | None:
-        """Return state class."""
-        # https://developers.home-assistant.io/docs/core/entity/sensor/#available-state-classes
-        return SensorStateClass.MEASUREMENT
-
-    @property
-    def unique_id(self) -> str:
-        """Return unique id."""
-        # All entities must have a unique id.  Think carefully what you want this to be as
-        # changing it later will cause HA to create new entities.
-        return f"{DOMAIN}-{self.device.device_unique_id}"
-
-    @property
-    def extra_state_attributes(self):
-        """Return the extra state attributes."""
-        # Add any additional attributes you want on your sensor.
-        attrs = {}
-        attrs["extra_info"] = "Extra Info"
-        return attrs
+    def native_value(self) -> StateType:
+        """Return the value reported by the sensor."""
+        for counter in self.coordinator.data:
+            if (
+                counter["counter"] == self.counter
+                and counter["fluidType"] == self.fluid_type
+            ):
+                return counter["last_index"]
+        return None

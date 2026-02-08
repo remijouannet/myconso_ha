@@ -1,17 +1,18 @@
 {
-  "domain": "msp_integration_101_template",
-  "name": "MSP Integration 101 Template Example",
+  "domain": "myconso_ha",
+  "name": "myconso_ha",
   "codeowners": [
-    "@msp1974"
+    "@remijouannet"
   ],
   "config_flow": true,
+  "integration_type": "service",
   "dependencies": [],
-  "documentation": "https://github.com/msp1974/HAIntegrationExamples",
+  "documentation": "https://github.com/remijouannet/myconso_ha",
   "homekit": {},
-  "iot_class": "local_polling",
-  "requirements": [],
+  "iot_class": "cloud_polling",
+  "requirements": ["myconso==0.0.2"],
   "single_config_entry": false,
   "ssdp": [],
-  "version": "1.0.1",
+  "version": "0.0.1",
   "zeroconf": []
 }

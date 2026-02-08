@@ -1,0 +1,7 @@
+default_config:
+
+# Example configuration.yaml entry
+logger:
+  default: info
+  logs:
+    custom_components.myconso_ha: debug

@@ -1,6 +1,6 @@
 {
   "config": {
-    "title": "Integration 101 Template Integration",
+    "title": "myconso_ha",
     "abort": {
       "already_configured": "Device is already configured",
       "reconfigure_successful": "Reconfiguration successful"
@@ -13,28 +13,31 @@
     "step": {
       "user": {
         "data": {
-          "host": "Host",
           "password": "Password",
           "username": "Username"
         }
       },
       "reconfigure": {
         "data": {
-          "host": "Host",
           "password": "Password",
           "username": "Username"
         }
       }
     }
   },
-  "options": {
-    "step": {
-      "init": {
-        "data": {
-          "scan_interval": "Scan Interval (seconds)"
-        },
-        "description": "Amend your options.",
-        "title": "Example Integration Options"
+  "entity": {
+    "sensor": {
+      "heating": {
+        "name": "Heating"
+      },
+      "clim": {
+        "name": "clim"
+      },
+      "hot_water": {
+        "name": "Hot water"
+      },
+      "water": {
+        "name": "Cold Water"
       }
     }
   }
