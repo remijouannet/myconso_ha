@@ -60,7 +60,7 @@ class MyConsoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 data={
                     'token': self.client.token,
                     'refresh_token': self.client.refresh_token,
-                    'housing': self.client._housing,
+                    'housing': self.client.housing,
                 },
             )
         return data
