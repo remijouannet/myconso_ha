@@ -1,24 +1,21 @@
 from __future__ import annotations
 
 import logging
-from datetime import timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
-from .const import DOMAIN
+from .const import DOMAIN, UPDATE_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
 type MyConsoConfigEntry = ConfigEntry[MyConsoCoordinator]
 
-UPDATE_INTERVAL = timedelta(minutes=30)
-
 
 class MyConsoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     config_entry: MyConsoConfigEntry
-    housing: str
     housings: list[dict]
     counters: list[dict]
 
@@ -31,7 +28,6 @@ class MyConsoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             update_interval=UPDATE_INTERVAL,
         )
         self.client = client
-        self.housing = config_entry.data["housing"]
         self.housings = config_entry.data["housings"]
 
     async def _async_setup(self) -> None:
@@ -46,8 +42,16 @@ class MyConsoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_data(self):
         data = []
+        yesterday = datetime.now(UTC).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        ) - timedelta(days=1)
         for c in self.counters:
-            indexes = await self.client.get_meter(c["counter"], c["housing"])
+            indexes = await self.client.get_meter(
+                counter=c["counter"],
+                housing=c["housing"],
+                startdate=yesterday,
+                enddate=datetime.now(UTC),
+            )
             filtered = [
                 idx for idx in indexes["indexes"] if idx["fluidType"] == c["fluidType"]
             ]
@@ -64,7 +68,6 @@ class MyConsoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 data={
                     "token": self.client.token,
                     "refresh_token": self.client.refresh_token,
-                    "housing": self.client.housing,
                     "housings": self.client.housings,
                 },
             )

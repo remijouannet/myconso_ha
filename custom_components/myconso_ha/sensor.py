@@ -8,7 +8,7 @@ from homeassistant.components.sensor import (
     SensorEntityDescription,
     SensorStateClass,
 )
-from homeassistant.const import Platform, UnitOfEnergy, UnitOfVolume
+from homeassistant.const import UnitOfEnergy, UnitOfVolume
 from homeassistant.helpers.device_registry import (
     DeviceEntry,
     DeviceEntryType,
@@ -23,10 +23,6 @@ from .coordinator import MyConsoCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
-PLATFORMS: list[Platform] = [Platform.SENSOR]
-
-
-# Coordinator is used to centralize the data updates
 PARALLEL_UPDATES = 0
 
 
@@ -78,7 +74,7 @@ SENSOR_DESCRIPTIONS: tuple[MyConsoSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.WATER,
         native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        suggested_display_precision=1,
+        suggested_display_precision=3,
         unit_class=VolumeConverter.UNIT_CLASS,
     ),
     MyConsoSensorEntityDescription(
@@ -88,7 +84,7 @@ SENSOR_DESCRIPTIONS: tuple[MyConsoSensorEntityDescription, ...] = (
         device_class=SensorDeviceClass.WATER,
         native_unit_of_measurement=UnitOfVolume.CUBIC_METERS,
         state_class=SensorStateClass.TOTAL_INCREASING,
-        suggested_display_precision=1,
+        suggested_display_precision=3,
         unit_class=VolumeConverter.UNIT_CLASS,
     ),
 )
@@ -111,14 +107,13 @@ async def async_setup_entry(
 
 class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
     entity_description: MyConsoSensorEntityDescription
-    # _attr_has_entity_name = True
     device_entry: DeviceEntry
 
     def __init__(
         self,
         coordinator: MyConsoCoordinator,
         entity_description: MyConsoSensorEntityDescription,
-        counter,
+        counter: dict,
     ) -> None:
         """Initialise sensor."""
         super().__init__(coordinator)
@@ -128,10 +123,11 @@ class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
         self.housing = counter["housing"]
         self.fluid_type = counter["fluidType"]
         self.entity_description = entity_description
-        self._attr_unique_id = f"{self.counter}_{entity_description.key}"
-        self._attr_name = (
-            f"{entity_description.fluid_type} {counter['location']} {self.counter}"
-        )
+        self._attr_unique_id = f"{self.housing}_{self.counter}_{entity_description.key}"
+        if counter.get("location"):
+            self._attr_name = f"{entity_description.fluid_type} {counter['location']}"
+        else:
+            self._attr_name = f"{entity_description.fluid_type} {self.counter}"
         self._attr_extra_state_attributes = {
             "counter": counter["counter"],
             "location": counter["location"],
