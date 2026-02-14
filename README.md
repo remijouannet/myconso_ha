@@ -3,7 +3,7 @@
 
 # myconso_ha Home Assistant Integration
 
-Provides last index of very counter of your housings behind behind the [Myconso application](https://play.google.com/store/apps/details?id=fr.proxiserve.myconso&hl=fr)
+Provides last index for very counter of your housings behind behind the [Myconso application](https://play.google.com/store/apps/details?id=fr.proxiserve.myconso&hl=fr)
 
 ## Installation
 
