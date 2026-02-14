@@ -59,8 +59,6 @@ class MyConsoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             data.append({**c, "last_index": last_index["value"]})
         _LOGGER.debug("MyConsoCoordinator Update data %s ", data)
 
-        await self.client.auth_refresh()
-
         if self.client.token != self.config_entry.data["token"]:
             _LOGGER.debug("Refresh token in config entries")
             self.hass.config_entries.async_update_entry(
