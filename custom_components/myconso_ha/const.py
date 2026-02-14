@@ -1,1 +1,1 @@
-DOMAIN = "myconso_ha"
+DOMAIN = "myconso"

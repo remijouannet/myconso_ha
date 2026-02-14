@@ -1,18 +1,16 @@
 {
-  "domain": "myconso_ha",
-  "name": "myconso_ha",
-  "codeowners": [
-    "@remijouannet"
-  ],
-  "config_flow": true,
-  "integration_type": "service",
-  "dependencies": [],
-  "documentation": "https://github.com/remijouannet/myconso_ha",
-  "homekit": {},
-  "iot_class": "cloud_polling",
-  "requirements": ["myconso==0.0.5"],
-  "single_config_entry": false,
-  "ssdp": [],
-  "version": "0.0.1",
-  "zeroconf": []
+    "domain": "myconso",
+    "name": "myconso_ha",
+    "codeowners": ["@remijouannet"],
+    "config_flow": true,
+    "integration_type": "service",
+    "dependencies": [],
+    "documentation": "https://github.com/remijouannet/myconso_ha",
+    "homekit": {},
+    "iot_class": "cloud_polling",
+    "requirements": ["myconso==0.0.5"],
+    "single_config_entry": false,
+    "ssdp": [],
+    "version": "0.0.1",
+    "zeroconf": []
 }

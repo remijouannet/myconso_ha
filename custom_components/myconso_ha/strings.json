@@ -1,44 +1,26 @@
 {
-  "config": {
-    "title": "myconso_ha",
-    "abort": {
-      "already_configured": "Device is already configured",
-      "reconfigure_successful": "Reconfiguration successful"
+    "config": {
+        "title": "myconso_ha",
+        "abort": {
+            "already_configured": "Device is already configured",
+            "reconfigure_successful": "Reconfiguration successful",
+        },
+        "error": {
+            "cannot_connect": "Failed to connect",
+            "invalid_auth": "Invalid authentication",
+            "unknown": "Unexpected error",
+        },
+        "step": {
+            "user": {"data": {"password": "Password", "username": "Username"}},
+            "reconfigure": {"data": {"password": "Password", "username": "Username"}},
+        },
     },
-    "error": {
-      "cannot_connect": "Failed to connect",
-      "invalid_auth": "Invalid authentication",
-      "unknown": "Unexpected error"
+    "entity": {
+        "sensor": {
+            "heating": {"name": "Heating"},
+            "clim": {"name": "clim"},
+            "hot_water": {"name": "Hot water"},
+            "water": {"name": "Cold Water"},
+        }
     },
-    "step": {
-      "user": {
-        "data": {
-          "password": "Password",
-          "username": "Username"
-        }
-      },
-      "reconfigure": {
-        "data": {
-          "password": "Password",
-          "username": "Username"
-        }
-      }
-    }
-  },
-  "entity": {
-    "sensor": {
-      "heating": {
-        "name": "Heating"
-      },
-      "clim": {
-        "name": "clim"
-      },
-      "hot_water": {
-        "name": "Hot water"
-      },
-      "water": {
-        "name": "Cold Water"
-      }
-    }
-  }
 }

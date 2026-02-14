@@ -1,17 +1,14 @@
 import logging
-
-
 from dataclasses import dataclass
 from enum import StrEnum
 
-from homeassistant.const import Platform
 from homeassistant.components.sensor import (
     SensorDeviceClass,
     SensorEntity,
-    SensorStateClass,
     SensorEntityDescription,
+    SensorStateClass,
 )
-from homeassistant.const import UnitOfEnergy, UnitOfVolume
+from homeassistant.const import Platform, UnitOfEnergy, UnitOfVolume
 from homeassistant.helpers.device_registry import (
     DeviceEntry,
     DeviceEntryType,
@@ -102,13 +99,7 @@ async def async_setup_entry(
     config_entry,
     async_add_entities,
 ) -> None:
-    _LOGGER.debug("async_setup_entry 1 %s", config_entry.data)
-    _LOGGER.debug("async_setup_entry 2 %s", config_entry.runtime_data)
-
     coordinator = config_entry.runtime_data
-
-    _LOGGER.debug("async_setup_entry 3 %s", coordinator.data)
-    _LOGGER.debug("async_setup_entry 4 %s", coordinator.counters)
 
     sensors = []
     for counter in coordinator.counters:
@@ -120,7 +111,7 @@ async def async_setup_entry(
 
 class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
     entity_description: MyConsoSensorEntityDescription
-    #_attr_has_entity_name = True
+    # _attr_has_entity_name = True
     device_entry: DeviceEntry
 
     def __init__(
@@ -131,29 +122,34 @@ class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
     ) -> None:
         """Initialise sensor."""
         super().__init__(coordinator)
-        _LOGGER.debug("MyConsoSensor init 1 %s", counter)
-        _LOGGER.debug("MyConsoSensor init 2 %s", counter['counter'])
-        _LOGGER.debug("MyConsoSensor init 3 %s", entity_description.key)
-        _LOGGER.debug("MyConsoSensor init 4 %s", coordinator.housing)
+        _LOGGER.debug("MyConsoSensor counter %s", counter)
 
         self.counter = counter["counter"]
+        self.housing = counter["housing"]
         self.fluid_type = counter["fluidType"]
         self.entity_description = entity_description
         self._attr_unique_id = f"{self.counter}_{entity_description.key}"
-        self._attr_name = f"{entity_description.fluid_type} {counter['location']} {self.counter}"
+        self._attr_name = (
+            f"{entity_description.fluid_type} {counter['location']} {self.counter}"
+        )
         self._attr_extra_state_attributes = {
-                "counter": counter["counter"],
-                "location": counter["location"],
-                "fluidtype": counter["fluidType"]
+            "counter": counter["counter"],
+            "location": counter["location"],
+            "fluidtype": counter["fluidType"],
         }
+        for housing in coordinator.info_housings["member"]:
+            if self.housing == housing["housingId"] and housing.get("name"):
+                housing_name = housing["name"]
+                break
+        else:
+            housing_name = "No housing name"
+
         self._attr_device_info = DeviceInfo(
             entry_type=DeviceEntryType.SERVICE,
             manufacturer="proxiserve",
-            model="proxiserve",
-            name=coordinator.info_housing['name'],
-            model_id=coordinator.housing,
-            serial_number=coordinator.housing,
-            identifiers={(DOMAIN, coordinator.housing)},
+            name=housing_name,
+            serial_number=counter["housing"],
+            identifiers={(DOMAIN, counter["housing"])},
         )
 
     @property
@@ -161,7 +157,8 @@ class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
         """Return the value reported by the sensor."""
         for counter in self.coordinator.data:
             if (
-                counter["counter"] == self.counter
+                counter["housing"] == self.housing
+                and counter["counter"] == self.counter
                 and counter["fluidType"] == self.fluid_type
             ):
                 return counter["last_index"]

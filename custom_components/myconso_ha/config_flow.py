@@ -4,17 +4,16 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.config_entries import (
     ConfigFlow,
     ConfigFlowResult,
 )
 from homeassistant.const import (
-    CONF_PASSWORD,
     CONF_EMAIL,
+    CONF_PASSWORD,
 )
-
 from myconso.api import MyConsoClient
+
 from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
@@ -58,6 +57,7 @@ class MyConsoConfigFlow(ConfigFlow, domain=DOMAIN):
                         "token": res["token"],
                         "refresh_token": res["refresh_token"],
                         "housing": res["housing"],
+                        "housings": res["user"]["housingIds"],
                     },
                 )
 

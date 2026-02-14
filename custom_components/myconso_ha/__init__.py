@@ -1,9 +1,9 @@
 import logging
 
 from homeassistant.const import Platform
+from myconso.api import MyConsoClient
 
 from .coordinator import MyConsoCoordinator
-from myconso.api import MyConsoClient
 
 _LOGGER = logging.getLogger(__name__)
 
