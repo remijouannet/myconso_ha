@@ -11,6 +11,6 @@
     "requirements": ["myconso==0.0.6"],
     "single_config_entry": false,
     "ssdp": [],
-    "version": "0.0.1",
+    "version": "0.0.2",
     "zeroconf": []
 }
