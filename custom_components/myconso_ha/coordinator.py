@@ -42,21 +42,22 @@ class MyConsoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
 
     async def _async_update_data(self):
         data = []
-        yesterday = datetime.now(UTC).replace(
+        last_7_days = datetime.now(UTC).replace(
             hour=0, minute=0, second=0, microsecond=0
-        ) - timedelta(days=1)
+        ) - timedelta(days=7)
         for c in self.counters:
             indexes = await self.client.get_meter(
                 counter=c["counter"],
                 housing=c["housing"],
-                startdate=yesterday,
+                startdate=last_7_days,
                 enddate=datetime.now(UTC),
             )
             filtered = [
                 idx for idx in indexes["indexes"] if idx["fluidType"] == c["fluidType"]
             ]
-            last_index = max(filtered, key=lambda x: x["date"])
-            data.append({**c, "last_index": last_index["value"]})
+            if filtered:
+                last_index = max(filtered, key=lambda x: x["date"])
+                data.append({**c, "last_index": last_index["value"]})
         _LOGGER.debug("MyConsoCoordinator Update data %s ", data)
 
         if self.client.token != self.config_entry.data["token"]:
