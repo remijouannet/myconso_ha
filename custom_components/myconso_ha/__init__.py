@@ -1,8 +1,10 @@
 import logging
 
+import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed, ConfigEntryNotReady
 from myconso.api import MyConsoClient
 
 from .coordinator import MyConsoCoordinator
@@ -17,6 +19,19 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
         token=config_entry.data["token"],
         refresh_token=config_entry.data["refresh_token"],
     )
+
+    # Validate credentials before setting up platforms
+    try:
+        await client.get_housings()
+    except aiohttp.ClientResponseError as exc:
+        if exc.status == aiohttp.web.HTTPUnauthorized.status_code:
+            raise ConfigEntryAuthFailed from exc
+        raise ConfigEntryNotReady from exc
+    except aiohttp.ClientError as exc:
+        raise ConfigEntryNotReady from exc
+    except Exception as exc:
+        _LOGGER.exception("Unexpected exception during setup")
+        raise ConfigEntryNotReady from exc
 
     coordinator = MyConsoCoordinator(hass, config_entry, client)
 

@@ -56,24 +56,24 @@ class MyConsoConfigFlow(ConfigFlow, domain=DOMAIN):
                     user_input[CONF_EMAIL], user_input[CONF_PASSWORD]
                 ) as c:
                     res = await c.auth()
-            except Exception:  # pylint: disable=broad-except
-                _LOGGER.exception("Unexpected exception")
-                errors["base"] = "unknown"
-            except aiohttp.client_exceptions.ClientResponseError as exec:
-                if exec.value.status == aiohttp.web.HTTPUnauthorized.status_code:
+            except aiohttp.ClientResponseError as exc:
+                if exc.status == aiohttp.web.HTTPUnauthorized.status_code:
                     errors["base"] = "invalid_auth"
                 else:
                     errors["base"] = "http_error"
+            except Exception:  # pylint: disable=broad-except
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
 
             if "base" not in errors:
-                await self.async_set_unique_id(res["user"]["userIdentifier"])
+                await self.async_set_unique_id(res.user.userIdentifier)
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(
-                    title=res["user"]["userIdentifier"],
+                    title=res.user.userIdentifier,
                     data={
-                        "token": res["token"],
-                        "refresh_token": res["refresh_token"],
-                        "housings": res["user"]["housingIds"],
+                        "token": res.token,
+                        "refresh_token": res.refresh_token,
+                        "housings": res.user.housingIds,
                     },
                 )
 
@@ -97,24 +97,22 @@ class MyConsoConfigFlow(ConfigFlow, domain=DOMAIN):
                     user_input[CONF_EMAIL], user_input[CONF_PASSWORD]
                 ) as c:
                     res = await c.auth()
-            except Exception:  # pylint: disable=broad-except
-                _LOGGER.exception("Unexpected exception")
-                errors["base"] = "unknown"
-            except aiohttp.client_exceptions.ClientResponseError as exec:
-                if exec.value.status == aiohttp.web.HTTPUnauthorized.status_code:
+            except aiohttp.ClientResponseError as exc:
+                if exc.status == aiohttp.web.HTTPUnauthorized.status_code:
                     errors["base"] = "invalid_auth"
                 else:
                     errors["base"] = "http_error"
+            except Exception:  # pylint: disable=broad-except
+                _LOGGER.exception("Unexpected exception")
+                errors["base"] = "unknown"
 
             if "base" not in errors:
-                await self.async_set_unique_id(res["user"]["userIdentifier"])
-                self._abort_if_unique_id_configured()
                 return self.async_update_reload_and_abort(
                     self._get_reauth_entry(),
                     data_updates={
-                        "token": res["token"],
-                        "refresh_token": res["refresh_token"],
-                        "housings": res["user"]["housingIds"],
+                        "token": res.token,
+                        "refresh_token": res.refresh_token,
+                        "housings": res.user.housingIds,
                     },
                 )
 

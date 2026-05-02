@@ -1,0 +1,16 @@
+[
+  {
+    "counter": "counter_1",
+    "fluidType": "heating",
+    "meterType": "heat",
+    "unit": "kWh",
+    "housing": "housing_1"
+  },
+  {
+    "counter": "counter_2",
+    "fluidType": "waterCold",
+    "meterType": "water",
+    "unit": "m3",
+    "housing": "housing_1"
+  }
+]

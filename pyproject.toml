@@ -1,25 +1,47 @@
 [project]
 name = "myconso_ha"
-version = "0.0.1"
+version = "0.0.5"
 description = "Proxiserver myconso in ha"
 readme = "README.md"
-requires-python = "==3.13.2"
+requires-python = ">=3.14.2"
+authors = [
+    {name = "Rémi Jouannet", email = "remijouannet@gmail.com"},
+]
 dependencies = [
-    "homeassistant~=2025.10.0",
+    "homeassistant>=2026.3.0",
 ]
 
 [dependency-groups]
 dev = [
-    "pre-commit>=4.2.0",
-    "ruff>=0.14.1",
+    "pre-commit",
+    "ruff",
+    "mypy",
+    "pytest==9.0.0",
+    "pytest-asyncio",
+    "homeassistant",
+    "pytest-homeassistant-custom-component",
+    "myconso==0.0.13",
+    "pydantic==2.12.2",
 ]
 
 [tool.uv]
 required-version = ">=0.8.0"
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "live_api: tests that call the real MyConso API (require MYCONSO_EMAIL and MYCONSO_PASSWORD env vars)",
+]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+exclude = "tests/"
+files = "custom_components/"
+strict = true
+
 [tool.ruff]
 line-length = 88
-include = ["custom_components/myconso_ha/*.py"]
+include = ["custom_components/myconso_ha/*.py", "tests/*.py"]
 
 [tool.ruff.lint]
 select = [

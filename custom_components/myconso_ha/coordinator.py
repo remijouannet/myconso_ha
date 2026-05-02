@@ -1,11 +1,16 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any
 
+import aiohttp
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from myconso.api import MyConsoClient
+from myconso.models import Housings
+from myconso.models.counter import CounterItem
 
 from .const import DOMAIN, UPDATE_INTERVAL
 
@@ -14,12 +19,24 @@ _LOGGER = logging.getLogger(__name__)
 type MyConsoConfigEntry = ConfigEntry[MyConsoCoordinator]
 
 
-class MyConsoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
-    config_entry: MyConsoConfigEntry
-    housings: list[dict]
-    counters: list[dict]
+@dataclass
+class CounterState:
+    housing: str
+    counter: str
+    fluid_type: str
+    last_index: float
 
-    def __init__(self, hass, config_entry, client) -> None:
+
+class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
+    config_entry: MyConsoConfigEntry
+    housings: list[str]
+    counters: list[CounterItem]
+    info_housings: Housings
+    counter_locations: dict[str, str | None]
+
+    def __init__(
+        self, hass: HomeAssistant, config_entry: ConfigEntry, client: MyConsoClient
+    ) -> None:
         super().__init__(
             hass,
             _LOGGER,
@@ -29,45 +46,74 @@ class MyConsoCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         )
         self.client = client
         self.housings = config_entry.data["housings"]
+        self._unavailable_logged = False
 
     async def _async_setup(self) -> None:
-        self.counters = await self.client.get_counters()
+        self.counters = (await self.client.get_counters()).root
         self.info_housings = await self.client.get_housings()
 
+        self.counter_locations = {}
         for c in self.counters:
-            meter_info = await self.client.get_meter_info(c["counter"], c["housing"])
+            meter_info = await self.client.get_meter_info(c.counter, c.housing)
             if meter_info:
-                c.update({"location": meter_info["location"]})
+                self.counter_locations[f"{c.housing}_{c.counter}"] = meter_info.location
         _LOGGER.debug("MyConsoCoordinator setup %s", self.counters)
 
-    async def _async_update_data(self):
-        data = []
-        last_7_days = datetime.now(UTC).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        ) - timedelta(days=7)
-        for c in self.counters:
-            indexes = await self.client.get_meter(
-                counter=c["counter"],
-                housing=c["housing"],
-                startdate=last_7_days,
-                enddate=datetime.now(UTC),
-            )
-            filtered = [
-                idx for idx in indexes["indexes"] if idx["fluidType"] == c["fluidType"]
-            ]
-            if filtered:
-                last_index = max(filtered, key=lambda x: x["date"])
-                data.append({**c, "last_index": last_index["value"]})
-        _LOGGER.debug("MyConsoCoordinator Update data %s ", data)
+    async def _async_update_data(self) -> list[CounterState]:
+        try:
+            data = await self._fetch_data()
+        except aiohttp.ClientResponseError as exc:
+            if exc.status == aiohttp.web.HTTPUnauthorized.status_code:
+                raise UpdateFailed("Authentication failed") from exc
+            raise UpdateFailed(f"HTTP error {exc.status}") from exc
+        except aiohttp.ClientError as exc:
+            raise UpdateFailed(f"Connection error: {exc}") from exc
+        except Exception as exc:
+            _LOGGER.exception("Unexpected exception during update")
+            raise UpdateFailed(f"Unexpected error: {exc}") from exc
+
+        # Log once when back online
+        if self._unavailable_logged:
+            _LOGGER.info("MyConso is back online")
+            self._unavailable_logged = False
 
         if self.client.token != self.config_entry.data["token"]:
             _LOGGER.debug("Refresh token in config entries")
             self.hass.config_entries.async_update_entry(
-                self.config_entry,
+                entry=self.config_entry,
                 data={
                     "token": self.client.token,
                     "refresh_token": self.client.refresh_token,
                     "housings": self.client.housings,
                 },
             )
+        return data
+
+    async def _fetch_data(self) -> list[CounterState]:
+        data: list[CounterState] = []
+        last_7_days = datetime.now(UTC).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        ) - timedelta(days=7)
+        now = datetime.now(UTC)
+        for c in self.counters:
+            meter = await self.client.get_meter(
+                counter=c.counter,
+                housing=c.housing,
+                startdate=last_7_days,
+                enddate=now,
+            )
+            if meter is None:
+                continue
+            filtered = [idx for idx in meter.indexes if idx.fluidType == c.fluidType]
+            if filtered:
+                last_index = max(filtered, key=lambda x: x.date)
+                data.append(
+                    CounterState(
+                        housing=c.housing,
+                        counter=c.counter,
+                        fluid_type=c.fluidType,
+                        last_index=last_index.value,
+                    )
+                )
+        _LOGGER.debug("MyConsoCoordinator Update data %s ", data)
         return data

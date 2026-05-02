@@ -14,4 +14,11 @@ repos:
     - id: ruff-check
       args: [--fix]
     - id: ruff-format
-      args: [--check]
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v1.20.1
+  hooks:
+    - id: mypy
+      args: [--strict, --ignore-missing-imports, --scripts-are-modules]
+      additional_dependencies: ["pyjwt[crypto]", "myconso==0.0.13", "homeassistant>=2026.3.0"]
+      exclude: "^(tests/|examples/)$"
+      files: custom_components/

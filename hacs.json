@@ -1,9 +1,9 @@
 {
   "name": "MyConso HA integration",
-  "hacs": "0.0.4",
+  "hacs": "0.0.5",
   "render_readme": true,
   "zip_release": true,
   "filename": "myconso_ha.zip",
   "hide_default_branch": true,
-  "homeassistant": "2026.1.0"
+  "homeassistant": "2026.3.0"
 }

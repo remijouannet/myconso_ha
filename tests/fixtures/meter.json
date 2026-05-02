@@ -1,0 +1,16 @@
+{
+  "indexes": [
+    {
+      "date": "2024-01-07T00:00:00Z",
+      "value": 1500.5,
+      "fluidType": "heating",
+      "weightedValue": 1500.5
+    },
+    {
+      "date": "2024-01-06T00:00:00Z",
+      "value": 1450.0,
+      "fluidType": "heating",
+      "weightedValue": 1450.0
+    }
+  ]
+}

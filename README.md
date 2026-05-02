@@ -20,8 +20,8 @@ Edit the code
 mkdir -p config
 cp configuration.yaml config/
 #container is for macos, docker should also work
-container run -i --name ha -v $(pwd)/config:/config -v $(pwd)/custom_components:/config/custom_components -e TZ=MY_TIME_ZONE -p 8123:8123 ghcr.io/home-assistant/home-assistant:stable && container rm ha
+container run -i --name ha -v $(pwd)/config:/config -v $(pwd)/custom_components:/config/custom_components -e TZ=MY_TIME_ZONE -p 8123:8123 homeassistant/home-assistant:stable
+container rm ha
 ```
 
 Access the local home assistant on http://localhost:8123
-

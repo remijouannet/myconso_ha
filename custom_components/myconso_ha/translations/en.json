@@ -1,9 +1,8 @@
 {
   "config": {
-    "title": "myconso_ha",
     "abort": {
       "already_configured": "Device is already configured",
-      "reconfigure_successful": "Reconfiguration successful"
+      "reauth_successful": "Re-authentication was successful"
     },
     "error": {
       "cannot_connect": "Failed to connect",
@@ -13,28 +12,29 @@
     "step": {
       "user": {
         "data": {
-          "host": "Host",
-          "password": "Password",
-          "username": "Username"
-        }
-      },
-      "reconfigure": {
-        "data": {
-          "host": "Host",
-          "password": "Password",
-          "username": "Username"
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "The email address of your MyConso account.",
+          "password": "The password of your MyConso account."
         }
       }
     }
   },
-  "options": {
-    "step": {
-      "init": {
-        "data": {
-          "scan_interval": "Scan Interval (seconds)"
-        },
-        "description": "Amend your options.",
-        "title": "Example Integration Options"
+  "entity": {
+    "sensor": {
+      "clim": {
+        "name": "Climatisation"
+      },
+      "heating": {
+        "name": "Heating"
+      },
+      "hot_water": {
+        "name": "Hot water"
+      },
+      "water": {
+        "name": "Cold water"
       }
     }
   }
