@@ -29,9 +29,6 @@ required-version = ">=0.8.0"
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
-markers = [
-    "live_api: tests that call the real MyConso API (require MYCONSO_EMAIL and MYCONSO_PASSWORD env vars)",
-]
 
 [tool.mypy]
 plugins = ["pydantic.mypy"]
