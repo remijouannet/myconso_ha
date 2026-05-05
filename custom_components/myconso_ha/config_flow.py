@@ -47,7 +47,7 @@ class MyConsoConfigFlow(ConfigFlow, domain=DOMAIN):
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle the initial step."""
+        """Process user input and validate credentials during setup."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
@@ -82,13 +82,13 @@ class MyConsoConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_reauth(self, user_input: dict[str, Any]) -> ConfigFlowResult:
-        """Handle reauthentication with new credentials."""
+        """Initiate the reauthentication process for MyConso."""
         return await self.async_step_reauth_confirm()
 
     async def async_step_reauth_confirm(
         self, user_input: dict[str, Any] | None = None
     ) -> ConfigFlowResult:
-        """Handle reauthentication confirmation."""
+        """Handle reauthentication confirmation and update credentials."""
         errors: dict[str, str] = {}
 
         if user_input is not None:

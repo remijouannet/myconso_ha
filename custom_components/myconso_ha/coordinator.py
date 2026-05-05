@@ -21,6 +21,8 @@ type MyConsoConfigEntry = ConfigEntry[MyConsoCoordinator]
 
 @dataclass
 class CounterState:
+    """Represents counter state with housing, counter ID, fluid type, and last index."""
+
     housing: str
     counter: str
     fluid_type: str
@@ -28,6 +30,8 @@ class CounterState:
 
 
 class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
+    """Coordinates data updates from the MyConso API and manages counter state."""
+
     config_entry: MyConsoConfigEntry
     housings: list[str]
     counters: list[CounterItem]
@@ -37,6 +41,7 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
     def __init__(
         self, hass: HomeAssistant, config_entry: ConfigEntry, client: MyConsoClient
     ) -> None:
+        """Initialize coordinator with HA instance, config entry, and MyConso client."""
         super().__init__(
             hass,
             _LOGGER,
@@ -49,6 +54,7 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
         self._unavailable_logged = False
 
     async def _async_setup(self) -> None:
+        """Set up initial data structures and fetch metadata from MyConso."""
         self.counters = (await self.client.get_counters()).root
         self.info_housings = await self.client.get_housings()
 
@@ -60,6 +66,7 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
         _LOGGER.debug("MyConsoCoordinator setup %s", self.counters)
 
     async def _async_update_data(self) -> list[CounterState]:
+        """Fetch latest counter data from MyConso API and handle errors."""
         try:
             data = await self._fetch_data()
         except aiohttp.ClientResponseError as exc:
@@ -90,6 +97,7 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
         return data
 
     async def _fetch_data(self) -> list[CounterState]:
+        """Retrieve counter readings for the last 7 days from MyConso API."""
         data: list[CounterState] = []
         last_7_days = datetime.now(UTC).replace(
             hour=0, minute=0, second=0, microsecond=0

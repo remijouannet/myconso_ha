@@ -9,6 +9,7 @@ Home Assistant custom integration (`myconso_ha`) that exposes energy consumption
 - **Setup**: Config flow (UI-based configuration, no YAML)
 - **External dependency**: `myconso==0.0.13` (PyPI library)
 - **HACS**: Distributed via HACS with zip releases
+- HA: Must follow rules from home assistant documentation, https://developers.home-assistant.io/docs/core/integration-quality-scale/rules
 
 ## Architecture
 
@@ -58,6 +59,7 @@ uv run pre-commit run --all-files
 - Coordinator pattern for all data fetching.
 - Config flow for all user-facing setup.
 - Use `homeassistant` typing and helpers; avoid bypassing core abstractions.
+- docstring must follow PEP 257
 
 ## Testing Notes
 

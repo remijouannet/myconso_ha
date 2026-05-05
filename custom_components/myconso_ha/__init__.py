@@ -15,6 +15,7 @@ PLATFORMS: list[Platform] = [Platform.SENSOR]
 
 
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
+    """Set up the MyConso integration from a configuration entry."""
     client = MyConsoClient(
         token=config_entry.data["token"],
         refresh_token=config_entry.data["refresh_token"],
@@ -45,5 +46,5 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> b
 
 
 async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry) -> bool:
-    """Unload the config entry and platforms."""
+    """Unload a MyConso configuration entry and clean up resources."""
     return await hass.config_entries.async_unload_platforms(config_entry, PLATFORMS)

@@ -30,6 +30,8 @@ PARALLEL_UPDATES = 0
 
 
 class MyConsoFluidType(StrEnum):
+    """Enumeration of supported fluid types in MyConso."""
+
     CLIM = "clim"
     HEATING = "heating"
     HOT_WATER = "waterHot"
@@ -38,11 +40,15 @@ class MyConsoFluidType(StrEnum):
 
 @dataclass(kw_only=True, frozen=True)
 class MyConsoSensorEntityDescription(SensorEntityDescription):
+    """Defines the structure and metadata for MyConso sensor entities."""
+
     fluid_type: MyConsoFluidType
     unit_class: str
 
 
 class MyConsoSensorEntity(StrEnum):
+    """Enumeration of MyConso sensor entity keys."""
+
     CLIM = "clim"
     HEATING = "heating"
     HOT_WATER = "hot_water"
@@ -109,6 +115,8 @@ async def async_setup_entry(
 
 
 class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
+    """Sensor entity for displaying MyConso counter data."""
+
     entity_description: MyConsoSensorEntityDescription
     device_entry: DeviceEntry
 
@@ -118,7 +126,7 @@ class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
         entity_description: MyConsoSensorEntityDescription,
         counter: CounterItem,
     ) -> None:
-        """Initialise sensor."""
+        """Initialize sensor with coordinator, entity description, and counter info."""
         super().__init__(coordinator)
         _LOGGER.debug("MyConsoSensor counter %s", counter)
 
@@ -156,7 +164,7 @@ class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
 
     @property
     def native_value(self) -> StateType:
-        """Return the value reported by the sensor."""
+        """Return the current counter reading value from coordinator data."""
         for counter in self.coordinator.data:
             if (
                 counter.housing == self.housing
