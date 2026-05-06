@@ -1,6 +1,6 @@
 {
   "name": "MyConso HA integration",
-  "hacs": "0.0.5",
+  "hacs": "0.0.6",
   "render_readme": true,
   "zip_release": true,
   "filename": "myconso_ha.zip",
