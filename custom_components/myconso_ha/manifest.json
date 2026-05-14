@@ -12,5 +12,6 @@
     "single_config_entry": false,
     "ssdp": [],
     "version": "0.0.6",
-    "zeroconf": []
+    "zeroconf": [],
+    "issue_tracker": "https://github.com/remijouannet/myconso_ha/issues"
 }
