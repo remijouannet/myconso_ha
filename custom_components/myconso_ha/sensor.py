@@ -1,6 +1,7 @@
 import logging
 from dataclasses import dataclass
 from enum import StrEnum
+from typing import override
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -118,7 +119,8 @@ class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
     """Sensor entity for displaying MyConso counter data."""
 
     entity_description: MyConsoSensorEntityDescription
-    device_entry: DeviceEntry
+    device_entry: DeviceEntry | None
+    _attr_has_entity_name = True
 
     def __init__(
         self,
@@ -135,12 +137,12 @@ class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
         self.fluid_type = counter.fluidType
         self.entity_description = entity_description
         self._attr_unique_id = f"{self.housing}_{self.counter}_{entity_description.key}"
-
         location = coordinator.counter_locations.get(f"{self.housing}_{self.counter}")
-        if location:
-            self._attr_name = f"{entity_description.fluid_type} {location}"
-        else:
-            self._attr_name = f"{entity_description.fluid_type} {self.counter}"
+
+        #if location:
+        #    self._attr_name = f"{entity_description.fluid_type} {location}"
+        #else:
+        #    self._attr_name = f"{entity_description.fluid_type} {self.counter}"
 
         self._attr_extra_state_attributes = {
             "counter": counter.counter,
@@ -163,6 +165,7 @@ class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
         )
 
     @property
+    @override
     def native_value(self) -> StateType:
         """Return the current counter reading value from coordinator data."""
         for counter in self.coordinator.data:

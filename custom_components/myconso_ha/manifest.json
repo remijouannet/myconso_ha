@@ -5,9 +5,7 @@
     "@remijouannet"
   ],
   "config_flow": true,
-  "dependencies": [],
   "documentation": "https://github.com/remijouannet/myconso_ha",
-  "homekit": {},
   "integration_type": "service",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/remijouannet/myconso_ha/issues",
@@ -15,7 +13,5 @@
     "myconso==0.0.14"
   ],
   "single_config_entry": false,
-  "ssdp": [],
-  "version": "0.0.6",
-  "zeroconf": []
+  "version": "0.0.6"
 }

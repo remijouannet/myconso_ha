@@ -8,7 +8,7 @@ authors = [
     {name = "Rémi Jouannet", email = "remijouannet@gmail.com"},
 ]
 dependencies = [
-    "homeassistant>=2026.3.0",
+    "homeassistant>=2026.6.0",
 ]
 
 [dependency-groups]

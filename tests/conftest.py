@@ -1,32 +1,24 @@
 """Test fixtures for myconso_ha."""
 
 from collections.abc import Generator
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, create_autospec, patch
 
-import aiohttp
 import pytest
-from aiohttp import RequestInfo
-from multidict import CIMultiDict, CIMultiDictProxy
+from homeassistant.core import HomeAssistant
+from myconso.api import MyConsoClient
 from myconso.models.auth import Auth
 from myconso.models.counter import Counter
 from myconso.models.housings import Housings
 from myconso.models.meter import Meter
 from myconso.models.meter_info import MeterInfo
 from pytest_homeassistant_custom_component.common import (
+    MockConfigEntry,
     load_json_value_fixture,
 )
-from yarl import URL
 
+from custom_components.myconso_ha.const import DOMAIN
 
-def create_client_response_error(status: int) -> aiohttp.ClientResponseError:
-    """Create a ClientResponseError with the given status code."""
-    req_info = RequestInfo(
-        url=URL("http://test"),
-        method="GET",
-        headers=CIMultiDictProxy(CIMultiDict()),
-        real_url=URL("http://test"),
-    )
-    return aiohttp.ClientResponseError(request_info=req_info, history=(), status=status)
+ENTRY_ID = "abc123_entry"
 
 
 @pytest.fixture
@@ -38,7 +30,7 @@ def mock_myconso_client() -> Generator[MagicMock]:
     meter_info = MeterInfo.model_validate(load_json_value_fixture("meter_info.json"))
     meter = Meter.model_validate(load_json_value_fixture("meter.json"))
 
-    client = MagicMock()
+    client = create_autospec(MyConsoClient)
     client.token = auth.token
     client.refresh_token = auth.refresh_token
     client.housings = auth.user.housingIds
@@ -62,6 +54,35 @@ def mock_myconso_client() -> Generator[MagicMock]:
         ),
     ):
         yield client
+
+
+@pytest.fixture
+def mock_config_entry() -> MockConfigEntry:
+    """Return the default mocked config entry."""
+    return MockConfigEntry(
+        domain=DOMAIN,
+        title="abc123",
+        entry_id=ENTRY_ID,
+        unique_id="abc123",
+        data={
+            "token": "test_token",
+            "refresh_token": "test_refresh_token",
+            "housings": ["housing_1"],
+        },
+    )
+
+
+@pytest.fixture
+async def init_integration(
+    hass: HomeAssistant,
+    mock_config_entry: MockConfigEntry,
+    mock_myconso_client: MagicMock,
+) -> MockConfigEntry:
+    """Set up the myconso_ha integration in Home Assistant."""
+    mock_config_entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(mock_config_entry.entry_id)
+    await hass.async_block_till_done()
+    return mock_config_entry
 
 
 @pytest.fixture(autouse=True)

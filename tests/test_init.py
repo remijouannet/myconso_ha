@@ -3,18 +3,32 @@
 from unittest.mock import MagicMock
 
 import aiohttp
+from aiohttp import ClientResponseError, RequestInfo
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.core import HomeAssistant
+from multidict import CIMultiDict, CIMultiDictProxy
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from yarl import URL
 
 from custom_components.myconso_ha.const import DOMAIN
-from tests import init_integration
-from tests.conftest import create_client_response_error
 
 
-async def test_setup_entry(hass: HomeAssistant, mock_myconso_client: MagicMock) -> None:
+def create_client_response_error(status: int):
+    """Create a ClientResponseError with the given status code."""
+    req_info = RequestInfo(
+        url=URL("http://test"),
+        method="GET",
+        headers=CIMultiDictProxy(CIMultiDict()),
+        real_url=URL("http://test"),
+    )
+    return ClientResponseError(request_info=req_info, history=(), status=status)
+
+
+async def test_setup_entry(
+    init_integration: MockConfigEntry, mock_myconso_client: MagicMock
+) -> None:
     """Test successful setup of a config entry."""
-    entry = await init_integration(hass)
+    entry = init_integration
 
     assert entry.state is ConfigEntryState.LOADED
     assert entry.runtime_data is not None
@@ -37,7 +51,7 @@ async def test_setup_entry_auth_failed(
         },
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
+    assert await hass.config_entries.async_setup(entry.entry_id) is False
     await hass.async_block_till_done()
 
     assert entry.state is ConfigEntryState.SETUP_ERROR
@@ -62,7 +76,7 @@ async def test_setup_entry_not_ready(
         },
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
+    assert await hass.config_entries.async_setup(entry.entry_id) is False
     await hass.async_block_till_done()
 
     assert entry.state is ConfigEntryState.SETUP_RETRY
@@ -84,17 +98,17 @@ async def test_setup_entry_unexpected_error(
         },
     )
     entry.add_to_hass(hass)
-    await hass.config_entries.async_setup(entry.entry_id)
+    assert await hass.config_entries.async_setup(entry.entry_id) is False
     await hass.async_block_till_done()
 
     assert entry.state is ConfigEntryState.SETUP_RETRY
 
 
 async def test_unload_entry(
-    hass: HomeAssistant, mock_myconso_client: MagicMock
+    hass: HomeAssistant, init_integration: MockConfigEntry
 ) -> None:
     """Test unloading a config entry."""
-    entry = await init_integration(hass)
+    entry = init_integration
 
     assert entry.state is ConfigEntryState.LOADED
 

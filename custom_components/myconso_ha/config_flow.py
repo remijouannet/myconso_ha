@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from http import HTTPStatus
 from typing import Any
 
 import aiohttp
@@ -57,7 +58,7 @@ class MyConsoConfigFlow(ConfigFlow, domain=DOMAIN):
                 ) as c:
                     res = await c.auth()
             except aiohttp.ClientResponseError as exc:
-                if exc.status == aiohttp.web.HTTPUnauthorized.status_code:
+                if exc.status == HTTPStatus.UNAUTHORIZED.value:
                     errors["base"] = "invalid_auth"
                 else:
                     errors["base"] = "http_error"
@@ -98,7 +99,7 @@ class MyConsoConfigFlow(ConfigFlow, domain=DOMAIN):
                 ) as c:
                     res = await c.auth()
             except aiohttp.ClientResponseError as exc:
-                if exc.status == aiohttp.web.HTTPUnauthorized.status_code:
+                if exc.status == HTTPStatus.UNAUTHORIZED.value:
                     errors["base"] = "invalid_auth"
                 else:
                     errors["base"] = "http_error"

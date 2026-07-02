@@ -3,10 +3,13 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from http import HTTPStatus
+from typing import override
 
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from myconso.api import MyConsoClient
 from myconso.models import Housings
@@ -49,10 +52,11 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
             name=DOMAIN,
             update_interval=UPDATE_INTERVAL,
         )
-        self.client = client
+        self.client: MyConsoClient = client
         self.housings = config_entry.data["housings"]
-        self._unavailable_logged = False
+        self._unavailable_logged: bool = False
 
+    @override
     async def _async_setup(self) -> None:
         """Set up initial data structures and fetch metadata from MyConso."""
         self.counters = (await self.client.get_counters()).root
@@ -65,13 +69,14 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
                 self.counter_locations[f"{c.housing}_{c.counter}"] = meter_info.location
         _LOGGER.debug("MyConsoCoordinator setup %s", self.counters)
 
+    @override
     async def _async_update_data(self) -> list[CounterState]:
         """Fetch latest counter data from MyConso API and handle errors."""
         try:
             data = await self._fetch_data()
         except aiohttp.ClientResponseError as exc:
-            if exc.status == aiohttp.web.HTTPUnauthorized.status_code:
-                raise UpdateFailed("Authentication failed") from exc
+            if exc.status == HTTPStatus.UNAUTHORIZED.value:
+                raise ConfigEntryAuthFailed("Authentication failed") from exc
             raise UpdateFailed(f"HTTP error {exc.status}") from exc
         except aiohttp.ClientError as exc:
             raise UpdateFailed(f"Connection error: {exc}") from exc
@@ -86,7 +91,7 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
 
         if self.client.token != self.config_entry.data["token"]:
             _LOGGER.debug("Refresh token in config entries")
-            self.hass.config_entries.async_update_entry(
+            _ = self.hass.config_entries.async_update_entry(
                 entry=self.config_entry,
                 data={
                     "token": self.client.token,

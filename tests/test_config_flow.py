@@ -2,19 +2,32 @@
 
 from unittest.mock import MagicMock
 
-from homeassistant.config_entries import SOURCE_REAUTH, SOURCE_USER
+from aiohttp import ClientResponseError, RequestInfo
+from homeassistant.config_entries import SOURCE_USER
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
+from multidict import CIMultiDict, CIMultiDictProxy
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from yarl import URL
 
 from custom_components.myconso_ha.const import DOMAIN
-from tests.conftest import create_client_response_error
 
 CONFIG = {
     CONF_EMAIL: "test@test.com",
     CONF_PASSWORD: "secret",
 }
+
+
+def create_client_response_error(status: int):
+    """Create a ClientResponseError with the given status code."""
+    req_info = RequestInfo(
+        url=URL("http://test"),
+        method="GET",
+        headers=CIMultiDictProxy(CIMultiDict()),
+        real_url=URL("http://test"),
+    )
+    return ClientResponseError(request_info=req_info, history=(), status=status)
 
 
 async def test_show_form(hass: HomeAssistant) -> None:
@@ -107,7 +120,7 @@ async def test_reauth_success(
     """Test reauthentication updates the existing entry."""
     entry = MockConfigEntry(
         domain=DOMAIN,
-        unique_id="abc124",
+        unique_id="abc123",
         data={
             "token": "old_token",
             "refresh_token": "old_refresh",
@@ -115,14 +128,14 @@ async def test_reauth_success(
         },
     )
     entry.add_to_hass(hass)
+    hass.config.components.add(DOMAIN)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={"source": SOURCE_REAUTH, "entry_id": entry.entry_id},
-        data=entry.data,
-    )
+    entry.async_start_reauth(hass)
+    await hass.async_block_till_done()
 
-    assert result["type"] is FlowResultType.FORM
+    flows = hass.config_entries.flow.async_progress()
+    assert len(flows) == 1
+    result = flows[0]
     assert result["step_id"] == "reauth_confirm"
 
     result = await hass.config_entries.flow.async_configure(
@@ -131,6 +144,7 @@ async def test_reauth_success(
 
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "reauth_successful"
+    await hass.async_block_till_done()
     assert entry.data["token"] == "test_token"
     assert entry.data["refresh_token"] == "test_refresh_token"
 
@@ -149,12 +163,14 @@ async def test_reauth_invalid_auth(
         },
     )
     entry.add_to_hass(hass)
+    hass.config.components.add(DOMAIN)
 
-    result = await hass.config_entries.flow.async_init(
-        DOMAIN,
-        context={"source": SOURCE_REAUTH, "entry_id": entry.entry_id},
-        data=entry.data,
-    )
+    entry.async_start_reauth(hass)
+    await hass.async_block_till_done()
+
+    flows = hass.config_entries.flow.async_progress()
+    assert len(flows) == 1
+    result = flows[0]
 
     mock_myconso_client.auth.side_effect = create_client_response_error(401)
 
