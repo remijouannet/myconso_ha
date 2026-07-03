@@ -1274,21 +1274,21 @@ wheels = [
 
 [[package]]
 name = "myconso"
-version = "0.0.14"
+version = "0.0.15"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "aiohttp" },
     { name = "pydantic" },
     { name = "pyjwt", extra = ["crypto"] },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/bd/85/c509a73647075bc04604b191a166f18097c0c5b1397c739d0cd3a49f18aa/myconso-0.0.14.tar.gz", hash = "sha256:9669c7299ab74c33c3f2ec5e920e13b32e8c77d57526be235d68492a71288ad4", size = 10755, upload-time = "2026-05-06T22:00:26.919Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/c2/54/d09bc652987ea07671425da6fa93dc1a82d7b5702d774dc1f927f0caf73c/myconso-0.0.15.tar.gz", hash = "sha256:5e77ef9afe0737975b1a95ddbbdcb7b8d8c183866b1f2ab297be88fa34178318", size = 10755, upload-time = "2026-07-03T22:37:02.846Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/00/2a/98f6671e84d888b7ef32033f99bb76ab7095cb39ac9aaaf08625a9e4212e/myconso-0.0.14-py3-none-any.whl", hash = "sha256:6e2bc1c92b086d68386d3bca43b920030ad35d18c0400914ae615f8bdd9e8777", size = 13958, upload-time = "2026-05-06T22:00:25.681Z" },
+    { url = "https://files.pythonhosted.org/packages/7e/d6/903fce6942622d7eee1f1b3e36aa0cf2271bcd3e00c01832ecccc2712d20/myconso-0.0.15-py3-none-any.whl", hash = "sha256:f9a6d146f41cadbf2bd3911e722a2f28de79ff6fdd85cca8cf57619734976d77", size = 13974, upload-time = "2026-07-03T22:37:03.704Z" },
 ]
 
 [[package]]
 name = "myconso-ha"
-version = "0.0.6"
+version = "0.0.7"
 source = { virtual = "." }
 dependencies = [
     { name = "homeassistant" },
@@ -1312,7 +1312,7 @@ requires-dist = [{ name = "homeassistant", specifier = ">=2026.3.0" }]
 [package.metadata.requires-dev]
 dev = [
     { name = "homeassistant" },
-    { name = "myconso", specifier = "==0.0.14" },
+    { name = "myconso", specifier = "==0.0.15" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "pytest", specifier = ">=9.0.0" },
