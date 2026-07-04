@@ -25,7 +25,7 @@
     "entity": {
         "sensor": {
             "clim": {
-                "name": "Climatisation"
+                "name": "Air conditioning"
             },
             "heating": {
                 "name": "Heating"

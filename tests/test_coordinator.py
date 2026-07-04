@@ -191,6 +191,8 @@ async def test_coordinator_setup(
     assert len(coordinator.counters) == 2  # noqa: PLR2004
     assert coordinator.info_housings.totalItems == 1
     assert coordinator.counter_locations == {
-        "housing_1_counter_1": "Kitchen",
-        "housing_1_counter_2": "Kitchen",
+        "housing_1": {
+            "counter_1": "Kitchen",
+            "counter_2": "Kitchen",
+        }
     }

@@ -137,12 +137,10 @@ class MyConsoSensor(CoordinatorEntity[MyConsoCoordinator], SensorEntity):
         self.fluid_type = counter.fluidType
         self.entity_description = entity_description
         self._attr_unique_id = f"{self.housing}_{self.counter}_{entity_description.key}"
-        location = coordinator.counter_locations.get(f"{self.housing}_{self.counter}")
-
-        #if location:
-        #    self._attr_name = f"{entity_description.fluid_type} {location}"
-        #else:
-        #    self._attr_name = f"{entity_description.fluid_type} {self.counter}"
+        location = coordinator.counter_locations.get(self.housing, {}).get(self.counter)
+        if location is not None:
+            fluid_name = entity_description.key.replace("_", " ").title()
+            self._attr_name = f"{fluid_name} {location}"
 
         self._attr_extra_state_attributes = {
             "counter": counter.counter,

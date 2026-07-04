@@ -39,7 +39,7 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
     housings: list[str]
     counters: list[CounterItem]
     info_housings: Housings
-    counter_locations: dict[str, str | None]
+    counter_locations: dict[str, dict[str, str | None]]
 
     def __init__(
         self, hass: HomeAssistant, config_entry: ConfigEntry, client: MyConsoClient
@@ -66,7 +66,9 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
         for c in self.counters:
             meter_info = await self.client.get_meter_info(c.counter, c.housing)
             if meter_info:
-                self.counter_locations[f"{c.housing}_{c.counter}"] = meter_info.location
+                if c.housing not in self.counter_locations:
+                    self.counter_locations[c.housing] = {}
+                self.counter_locations[c.housing][c.counter] = meter_info.location
         _LOGGER.debug("MyConsoCoordinator setup %s", self.counters)
 
     @override
@@ -91,7 +93,7 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
 
         if self.client.token != self.config_entry.data["token"]:
             _LOGGER.debug("Refresh token in config entries")
-            _ = self.hass.config_entries.async_update_entry(
+            self.hass.config_entries.async_update_entry(
                 entry=self.config_entry,
                 data={
                     "token": self.client.token,
