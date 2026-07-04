@@ -10,8 +10,10 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/remijouannet/myconso_ha/issues",
   "requirements": [
-    "myconso==0.0.14"
+    "myconso==0.0.15"
   ],
   "single_config_entry": false,
-  "version": "0.0.6"
+  "ssdp": [],
+  "version": "0.0.7",
+  "zeroconf": []
 }
