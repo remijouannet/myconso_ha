@@ -1,15 +1,29 @@
 {
+  "title": "MyConso",
   "config": {
     "abort": {
-      "already_configured": "Device is already configured",
+      "already_configured": "Account is already configured",
       "reauth_successful": "Re-authentication was successful"
     },
     "error": {
       "cannot_connect": "Failed to connect",
+      "http_error": "Unexpected server error",
       "invalid_auth": "Invalid authentication",
       "unknown": "Unexpected error"
     },
     "step": {
+      "reauth_confirm": {
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "The email address of your MyConso account.",
+          "password": "The password of your MyConso account."
+        },
+        "description": "Please re-authenticate your MyConso account.",
+        "title": "Re-authenticate"
+      },
       "user": {
         "data": {
           "email": "Email",
@@ -25,7 +39,7 @@
   "entity": {
     "sensor": {
       "clim": {
-        "name": "Climatisation"
+        "name": "Air conditioning"
       },
       "heating": {
         "name": "Heating"

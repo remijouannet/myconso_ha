@@ -34,7 +34,7 @@ async def test_entities(
     t1_entity_id = entity_registry.async_get_entity_id(
         "sensor", DOMAIN, "housing_1_counter_1_heating"
     )
-    assert t1_entity_id == "sensor.my_home_heating"
+    assert t1_entity_id == "sensor.my_home_heating_kitchen"
 
     t1_state = hass.states.get(t1_entity_id)
     assert t1_state is not None
