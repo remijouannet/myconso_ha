@@ -1,0 +1,55 @@
+{
+  "title": "MyConso",
+  "config": {
+    "abort": {
+      "already_configured": "Le compte est deja configure",
+      "reauth_successful": "La reauthentification a reussi"
+    },
+    "error": {
+      "cannot_connect": "Echec de connexion",
+      "http_error": "Erreur inattendue du serveur",
+      "invalid_auth": "Authentification invalide",
+      "unknown": "Erreur inattendue"
+    },
+    "step": {
+      "reauth_confirm": {
+        "data": {
+          "email": "E-mail",
+          "password": "Mot de passe"
+        },
+        "data_description": {
+          "email": "L'adresse e-mail de votre compte MyConso.",
+          "password": "Le mot de passe de votre compte MyConso."
+        },
+        "description": "Veuillez reauthentifier votre compte MyConso.",
+        "title": "Reauthentification"
+      },
+      "user": {
+        "data": {
+          "email": "E-mail",
+          "password": "Mot de passe"
+        },
+        "data_description": {
+          "email": "L'adresse e-mail de votre compte MyConso.",
+          "password": "Le mot de passe de votre compte MyConso."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "clim": {
+        "name": "Climatisation"
+      },
+      "heating": {
+        "name": "Chauffage"
+      },
+      "hot_water": {
+        "name": "Eau chaude"
+      },
+      "water": {
+        "name": "Eau froide"
+      }
+    }
+  }
+}
