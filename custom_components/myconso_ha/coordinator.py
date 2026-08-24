@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
@@ -12,7 +12,7 @@ from myconso.api import MyConsoClient
 from myconso.models import Housings
 from myconso.models.counter import CounterItem
 
-from .const import DOMAIN, UPDATE_INTERVAL
+from .const import DATA_RETRIEVAL_DAYS, DOMAIN, UPDATE_INTERVAL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -97,17 +97,18 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
         return data
 
     async def _fetch_data(self) -> list[CounterState]:
-        """Retrieve counter readings for the last 7 days from MyConso API."""
+        """Retrieve counter readings for the last 30 days from MyConso API."""
         data: list[CounterState] = []
-        last_7_days = datetime.now(UTC).replace(
-            hour=0, minute=0, second=0, microsecond=0
-        ) - timedelta(days=7)
+        retrieval_start = (
+            datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0)
+            - DATA_RETRIEVAL_DAYS
+        )
         now = datetime.now(UTC)
         for c in self.counters:
             meter = await self.client.get_meter(
                 counter=c.counter,
                 housing=c.housing,
-                startdate=last_7_days,
+                startdate=retrieval_start,
                 enddate=now,
             )
             if meter is None:
