@@ -1,6 +1,3 @@
-# myconso_ha
-
-
 # myconso_ha Home Assistant Integration
 
 Provides index for every counter of your housings behind the [Myconso application](https://play.google.com/store/apps/details?id=fr.proxiserve.myconso&hl=fr)
