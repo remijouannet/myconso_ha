@@ -7,6 +7,7 @@ from datetime import UTC, datetime
 import aiohttp
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from myconso.api import MyConsoClient
 from myconso.models import Housings
@@ -71,7 +72,7 @@ class MyConsoCoordinator(DataUpdateCoordinator[list[CounterState]]):
             data = await self._fetch_data()
         except aiohttp.ClientResponseError as exc:
             if exc.status == aiohttp.web.HTTPUnauthorized.status_code:
-                raise UpdateFailed("Authentication failed") from exc
+                raise ConfigEntryAuthFailed("Authentication failed") from exc
             raise UpdateFailed(f"HTTP error {exc.status}") from exc
         except aiohttp.ClientError as exc:
             raise UpdateFailed(f"Connection error: {exc}") from exc

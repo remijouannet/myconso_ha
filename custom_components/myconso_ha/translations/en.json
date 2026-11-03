@@ -6,10 +6,23 @@
     },
     "error": {
       "cannot_connect": "Failed to connect",
+      "http_error": "MyConso returned an unexpected HTTP error, try again later",
       "invalid_auth": "Invalid authentication",
       "unknown": "Unexpected error"
     },
     "step": {
+      "reauth_confirm": {
+        "title": "Reauthenticate MyConso",
+        "description": "Your MyConso session has expired, enter your credentials again.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        },
+        "data_description": {
+          "email": "The email address of your MyConso account.",
+          "password": "The password of your MyConso account."
+        }
+      },
       "user": {
         "data": {
           "email": "Email",

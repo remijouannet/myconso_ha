@@ -4,6 +4,7 @@ from unittest.mock import MagicMock
 
 import aiohttp
 import pytest
+from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import UpdateFailed
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
@@ -34,7 +35,7 @@ async def test_coordinator_update_success(hass, mock_myconso_client: MagicMock) 
 
 
 async def test_coordinator_auth_failure(hass, mock_myconso_client: MagicMock) -> None:
-    """Test UpdateFailed is raised on 401 during update."""
+    """Test ConfigEntryAuthFailed is raised on 401 during update."""
     entry = MockConfigEntry(
         domain="myconso_ha",
         data={
@@ -48,7 +49,7 @@ async def test_coordinator_auth_failure(hass, mock_myconso_client: MagicMock) ->
 
     mock_myconso_client.get_meter.side_effect = create_client_response_error(401)
 
-    with pytest.raises(UpdateFailed, match="Authentication failed"):
+    with pytest.raises(ConfigEntryAuthFailed, match="Authentication failed"):
         await coordinator._async_update_data()
 
 
