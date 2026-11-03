@@ -1,6 +1,10 @@
 {
   "domain": "myconso_ha",
   "name": "myconso",
+  "categories": [
+    "energy.meters_monitoring",
+    "water.meters_leak_detection"
+  ],
   "codeowners": [
     "@remijouannet"
   ],
