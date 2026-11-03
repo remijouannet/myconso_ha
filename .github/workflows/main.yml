@@ -1,4 +1,4 @@
-name: test_lint
+name: myconso_ci
 
 permissions:
   contents: read
